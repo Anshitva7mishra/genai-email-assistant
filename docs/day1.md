@@ -1028,10 +1028,10 @@ how all the pieces connect.
 | `GET /health` returns 200 + service name + uptime | Live test: gateway on port 3001 | `{"status":"ok","service":"gateway","uptime":2}` |
 | MongoDB reachable from every service container | MONGO_URI uses `mongo` container hostname, network-gated startup | Pass |
 | Redis reachable from every service container | REDIS_URL uses `redis` container hostname, network-gated startup | Pass |
-| No real secrets committed | Git repository contains only `.env.example` files | Pass |
+| No real secrets committed | `.env` files are gitignored at all depths via `**/.env` in `.gitignore` | Pass |
 | Plain JavaScript, no TypeScript | All files use `.js` extension, `require/module.exports` | Pass |
 | No OpenAI references | Codebase search: zero occurrences | Pass |
-| Mistral AI as fallback (not Groq) | `.env.example`, README, docs updated | Pass |
+| Mistral AI as fallback (not Groq) | README, docs, docker-compose.yml, ai-service env updated | Pass |
 
 Live health check result (gateway, tested 2026-08-11):
 
@@ -1056,10 +1056,12 @@ OK exports: connectDB, closeDB, logger, errorHandler, notFoundHandler,
 ## Files Created
 
 ```
+.gitattributes                     (LF line-ending enforcement)
 .gitignore
+.nvmrc                             (Node.js 20 version pin)
 README.md
 docker-compose.yml
-package.json                       (root — workspace + npm run scripts)
+package.json                       (root — workspace + engines constraint + npm run scripts)
 
 shared/
   index.js
@@ -1072,44 +1074,38 @@ shared/
 gateway/
   src/index.js
   src/routes/health.js
-  package.json
+  package.json                     (engines: node >=20.0.0)
   Dockerfile
-  .env.example
 
 ai-service/
   src/index.js
   src/routes/health.js
   package.json
   Dockerfile
-  .env.example
 
 email-service/
   src/index.js
   src/routes/health.js
   package.json
   Dockerfile
-  .env.example
 
 template-service/
   src/index.js
   src/routes/health.js
   package.json
   Dockerfile
-  .env.example
 
 scheduler-service/
   src/index.js
   src/routes/health.js
   package.json
   Dockerfile
-  .env.example
 
 analytics-service/
   src/index.js
   src/routes/health.js
   package.json
   Dockerfile
-  .env.example
 
 frontend/
   README.md                        (placeholder, scaffold on Day 2)

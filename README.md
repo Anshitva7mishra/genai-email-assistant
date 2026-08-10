@@ -94,7 +94,7 @@ GenAI+Microservices/
 |   |   +-- routes/
 |   |       +-- health.js       GET /health route handler
 |   +-- Dockerfile
-|   +-- package.json
+|   +-- package.json            engines: Node >= 20
 |
 +-- ai-service/                 AI Generation Service (port 3002)
 |   +-- src/
@@ -154,8 +154,10 @@ GenAI+Microservices/
 |   +-- health-check.js         CLI health-check utility
 |
 +-- docker-compose.yml          Full local development stack
-+-- .gitignore
-+-- package.json                Root workspace and convenience scripts
++-- .gitattributes              LF line-ending enforcement for all text files
++-- .gitignore                  Excludes .env, node_modules, build artefacts
++-- .nvmrc                      Pins Node.js version to 20 for nvm users
++-- package.json                Root workspace, engines constraint, npm run scripts
 +-- README.md                   This file
 ```
 
