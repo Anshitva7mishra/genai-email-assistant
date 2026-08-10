@@ -1,0 +1,225 @@
+version: '3.9'
+
+networks:
+  genai-net:
+    driver: bridge
+
+volumes:
+  mongo-data:
+  redis-data:
+
+services:
+
+  mongo:
+    image: mongo:7
+    container_name: genai-mongo
+    restart: unless-stopped
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - genai-net
+    healthcheck:
+      test: ['CMD', 'mongosh', '--eval', "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    container_name: genai-redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis-data:/data
+    networks:
+      - genai-net
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  gateway:
+    build:
+      context: .
+      dockerfile: gateway/Dockerfile
+    container_name: genai-gateway
+    restart: unless-stopped
+    ports:
+      - '3001:3001'
+    environment:
+      NODE_ENV: development
+      SERVICE_NAME: gateway
+      PORT: 3001
+      MONGO_URI: mongodb://mongo:27017/genai-email
+      REDIS_URL: redis://redis:6379
+      AI_SERVICE_URL: http://ai-service:3002
+      EMAIL_SERVICE_URL: http://email-service:3003
+      TEMPLATE_SERVICE_URL: http://template-service:3004
+      SCHEDULER_SERVICE_URL: http://scheduler-service:3005
+      ANALYTICS_SERVICE_URL: http://analytics-service:3006
+    networks:
+      - genai-net
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:3001/health']
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  ai-service:
+    build:
+      context: .
+      dockerfile: ai-service/Dockerfile
+    container_name: genai-ai-service
+    restart: unless-stopped
+    ports:
+      - '3002:3002'
+    environment:
+      NODE_ENV: development
+      SERVICE_NAME: ai-service
+      PORT: 3002
+      MONGO_URI: mongodb://mongo:27017/genai-email
+      REDIS_URL: redis://redis:6379
+      AI_REQUEST_TIMEOUT_MS: 30000
+      AI_MAX_RETRIES: 3
+    networks:
+      - genai-net
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:3002/health']
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  email-service:
+    build:
+      context: .
+      dockerfile: email-service/Dockerfile
+    container_name: genai-email-service
+    restart: unless-stopped
+    ports:
+      - '3003:3003'
+    environment:
+      NODE_ENV: development
+      SERVICE_NAME: email-service
+      PORT: 3003
+      MONGO_URI: mongodb://mongo:27017/genai-email
+      REDIS_URL: redis://redis:6379
+    networks:
+      - genai-net
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:3003/health']
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  template-service:
+    build:
+      context: .
+      dockerfile: template-service/Dockerfile
+    container_name: genai-template-service
+    restart: unless-stopped
+    ports:
+      - '3004:3004'
+    environment:
+      NODE_ENV: development
+      SERVICE_NAME: template-service
+      PORT: 3004
+      MONGO_URI: mongodb://mongo:27017/genai-email
+      REDIS_URL: redis://redis:6379
+      TEMPLATE_CACHE_TTL_SECONDS: 3600
+    networks:
+      - genai-net
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:3004/health']
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  scheduler-service:
+    build:
+      context: .
+      dockerfile: scheduler-service/Dockerfile
+    container_name: genai-scheduler-service
+    restart: unless-stopped
+    ports:
+      - '3005:3005'
+    environment:
+      NODE_ENV: development
+      SERVICE_NAME: scheduler-service
+      PORT: 3005
+      MONGO_URI: mongodb://mongo:27017/genai-email
+      REDIS_URL: redis://redis:6379
+      SCHEDULER_CONCURRENCY: 5
+      SCHEDULER_JOB_TIMEOUT_MS: 60000
+    networks:
+      - genai-net
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:3005/health']
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  analytics-service:
+    build:
+      context: .
+      dockerfile: analytics-service/Dockerfile
+    container_name: genai-analytics-service
+    restart: unless-stopped
+    ports:
+      - '3006:3006'
+    environment:
+      NODE_ENV: development
+      SERVICE_NAME: analytics-service
+      PORT: 3006
+      MONGO_URI: mongodb://mongo:27017/genai-email
+      REDIS_URL: redis://redis:6379
+      ANALYTICS_FLUSH_INTERVAL_MS: 60000
+    networks:
+      - genai-net
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:3006/health']
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s

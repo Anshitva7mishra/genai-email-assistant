@@ -1,0 +1,21 @@
+# Force LF line endings in the repository for all text files.
+# This ensures consistent diffs across Windows, macOS, and Linux contributors.
+# Git checks out files with the OS-native line ending (CRLF on Windows, LF elsewhere)
+# but always stores and compares using LF in the repository.
+
+*           text=auto eol=lf
+
+# Explicitly mark binary files so Git never mangles them
+*.png       binary
+*.jpg       binary
+*.jpeg      binary
+*.gif       binary
+*.ico       binary
+*.svg       binary
+*.woff      binary
+*.woff2     binary
+*.ttf       binary
+*.eot       binary
+*.pdf       binary
+*.zip       binary
+*.tar.gz    binary
