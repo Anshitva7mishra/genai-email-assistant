@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "GenAI Email Assistant — MERN microservices monorepo",
   "private": true,
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
   "scripts": {
     "up": "docker compose up --build",
     "down": "docker compose down",

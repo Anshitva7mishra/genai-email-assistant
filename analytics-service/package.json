@@ -1,6 +1,10 @@
 {
   "name": "@genai-email/analytics-service",
   "version": "1.0.0",
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
   "description": "Usage analytics and metrics service",
   "main": "src/index.js",
   "scripts": {

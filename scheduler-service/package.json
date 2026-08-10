@@ -1,6 +1,10 @@
 {
   "name": "@genai-email/scheduler-service",
   "version": "1.0.0",
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
   "description": "Job scheduling and email queue service",
   "main": "src/index.js",
   "scripts": {
